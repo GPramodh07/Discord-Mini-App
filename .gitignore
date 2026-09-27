@@ -31,3 +31,8 @@
 **/.DS_Store
 **/Thumbs.db
 **/*.log
+
+# Personal / Scratch files & folders
+md files/
+usb.txt
+

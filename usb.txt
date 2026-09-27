@@ -1,1 +1,5 @@
 ~/Android/Sdk/platform-tools/adb reverse tcp:5000 tcp:5000
+
+check server logs : cat /tmp/server.log
+
+run server : nohup java -cp "target/classes:lib/json.jar:lib/sqlite.jar" com.discordmini.server.ServerMain >> /tmp/server.log 2>&1 &
