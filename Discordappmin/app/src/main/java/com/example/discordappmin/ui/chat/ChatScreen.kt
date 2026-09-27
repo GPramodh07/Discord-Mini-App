@@ -71,7 +71,11 @@ fun ChatScreenContent(
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
+            try {
+                listState.animateScrollToItem(messages.size - 1)
+            } catch (e: Exception) {
+                try { listState.scrollToItem(messages.size - 1) } catch (_: Exception) {}
+            }
         }
     }
 

@@ -79,8 +79,13 @@ object SocketClient {
             try {
                 writer?.let {
                     it.println(packet.toJsonString())
-                    it.flush()
-                    true
+                    if (it.checkError()) {
+                        android.util.Log.e("SocketClient", "PrintWriter error detected while sending packet")
+                        disconnect()
+                        false
+                    } else {
+                        true
+                    }
                 } ?: false
             } catch (e: Exception) {
                 e.printStackTrace()
