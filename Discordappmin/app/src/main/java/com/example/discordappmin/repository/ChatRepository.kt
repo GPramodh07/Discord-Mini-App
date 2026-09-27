@@ -17,6 +17,12 @@ import kotlinx.coroutines.withTimeoutOrNull
 object ChatRepository {
     private val scope = CoroutineScope(Dispatchers.IO)
 
+    // Option 2: Ngrok Public TCP Host & Port Configuration (Commented out for USB testing)
+    // var NGROK_HOST: String = "0.tcp.in.ngrok.io" 
+    // var NGROK_PORT: Int = 23356
+    var NGROK_HOST: String = ""
+    var NGROK_PORT: Int = 5000
+
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
@@ -53,15 +59,24 @@ object ChatRepository {
         val cleanUser = username.trim().lowercase()
         val cleanPass = password.trim()
 
-        // Attempt TCP socket connection: 
-        // 1. 127.0.0.1 (ADB USB Reverse port forwarding)
-        // 2. 10.8.139.239 (Real Wi-Fi network IP)
-        // 3. 10.0.2.2 (Android Emulator loopback)
-        var connected = SocketClient.connect("127.0.0.1", port)
+        var connected = false
+
+        // 1. Ngrok Public TCP Tunnel (Commented out for USB testing)
+        // if (NGROK_HOST.isNotBlank()) {
+        //     connected = SocketClient.connect(NGROK_HOST, NGROK_PORT)
+        // }
+
+        // 2. USB / ADB Reverse / Local Network Fallbacks (Kept for testing & USB debugging)
         if (!connected) {
+            // ADB USB Reverse port forwarding (127.0.0.1:5000)
+            connected = SocketClient.connect("127.0.0.1", port)
+        }
+        if (!connected) {
+            // Real Wi-Fi network IP
             connected = SocketClient.connect("10.8.139.239", port)
         }
         if (!connected) {
+            // Android Emulator loopback
             connected = SocketClient.connect("10.0.2.2", port)
         }
 
@@ -130,8 +145,26 @@ object ChatRepository {
         return SocketClient.sendPacket(packet)
     }
 
+    private suspend fun ensureConnected(): Boolean {
+        if (SocketClient.isConnected) return true
+        val me = _currentUser.value?.username ?: return false
+        var connected = false
+        if (NGROK_HOST.isNotBlank()) {
+            connected = SocketClient.connect(NGROK_HOST, NGROK_PORT)
+        }
+        if (!connected) connected = SocketClient.connect("127.0.0.1", 5000)
+        if (!connected) connected = SocketClient.connect("10.8.139.239", 5000)
+        if (!connected) connected = SocketClient.connect("10.0.2.2", 5000)
+        if (connected) {
+            val loginPacket = SocketPacket(type = "LOGIN", sender = me, content = "123")
+            SocketClient.sendPacket(loginPacket)
+        }
+        return connected
+    }
+
     suspend fun sendPrivateMessage(recipient: String, text: String): Boolean {
         val me = _currentUser.value?.username ?: return false
+        ensureConnected()
         val packet = SocketPacket(
             type = "PRIVATE_MSG",
             sender = me,
@@ -155,6 +188,7 @@ object ChatRepository {
 
     suspend fun sendGroupMessage(groupId: String, text: String): Boolean {
         val me = _currentUser.value?.username ?: return false
+        ensureConnected()
         val packet = SocketPacket(
             type = "GROUP_MSG",
             sender = me,
@@ -178,6 +212,7 @@ object ChatRepository {
 
     suspend fun deleteMessage(message: Message): Boolean {
         val me = _currentUser.value?.username ?: return false
+        ensureConnected()
         val packet = SocketPacket(
             type = "DELETE_MSG",
             sender = me,

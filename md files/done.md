@@ -51,6 +51,7 @@ This document summarizes the current completion status of both the **Android Cli
   - **Group Info `(i)` Action & Members List Dialog**: Top bar features an info `(i)` button that opens a styled dialog displaying all group members with real-time online presence dots (green 🟢 / gray 🔘).
   - **Message Timestamps**: Formatted timestamps (`h:mm a`) rendered under every message bubble in both 1:1 and Group chats.
   - **Delete Message Feature (Both 1:1 & Group Chat)**: Users can long-press any message bubble to open a confirmation dialog and delete the message for everyone across all clients via `DELETE_MSG` socket packets and SQLite database deletion.
+  - **App Exit & Connection Safety Fix**: Added exception safety around `animateScrollToItem` in `LaunchedEffect` and `checkError()` socket reconnection logic in `SocketClient.kt` & `ChatRepository.kt` (`ensureConnected()`), preventing unexpected app exit after sending a message.
 - **Dynamic Group Management & History Restoration**:
   - Creating a group sends a `CREATE_GROUP` `SocketPacket` with `groupName` and `members` list over socket.
   - Incoming `CREATE_GROUP` socket notifications dynamically populate the group in `groups` `StateFlow` for all selected members.
