@@ -1,0 +1,33 @@
+# Root .gitignore for DiscordMini Monorepo
+
+# Android / Gradle artifacts
+**/.gradle/
+**/build/
+**/app/build/
+**/.kotlin/
+**/local.properties
+**/captures/
+**/.externalNativeBuild/
+**/.cxx/
+
+# Maven & Server build artifacts
+**/target/
+**/bin/
+
+# Database files
+**/*.db
+**/*.db-journal
+**/*.db-wal
+**/*.db-shm
+
+# IDE & Tooling files
+**/.idea/
+**/*.iml
+**/.classpath
+**/.project
+**/.settings/
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+**/*.log
