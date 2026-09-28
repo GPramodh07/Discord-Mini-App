@@ -2,7 +2,9 @@
 
 <br/>
 
-# 💬 DiscordMini
+<img src="./assets/logo.png" width="130" alt="DiscordMini Logo" />
+
+# DiscordMini
 
 ### *"Real-time chat, built from scratch."*
 
@@ -23,7 +25,7 @@
 
 <div align="center">
 
-| <img src="./readme-images/chat.png" width="220"/> | <img src="./readme-images/chat_msg.png" width="220"/> | <img src="./readme-images/group.png" width="220"/> | <img src="./readme-images/group_msg.png" width="220"/> |
+| <img src="./assets/chat.png" width="220"/> | <img src="./assets/chat_msg.png" width="220"/> | <img src="./assets/group.png" width="220"/> | <img src="./assets/group_msg.png" width="220"/> |
 |:---:|:---:|:---:|:---:|
 | **DM List** | **Direct Chat** | **Groups** | **Group Chat** |
 
@@ -199,9 +201,9 @@ To run the app on a **physical device** and connect it to your local server over
 ### Direct Messages
 
 <div align="center">
-  <img src="./readme-images/chat.png" alt="DM List Screen" width="40%" />
+  <img src="./assets/chat.png" alt="DM List Screen" width="40%" />
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./readme-images/chat_msg.png" alt="Direct Chat Screen" width="40%" />
+  <img src="./assets/chat_msg.png" alt="Direct Chat Screen" width="40%" />
 </div>
 
 <br/>
@@ -209,9 +211,9 @@ To run the app on a **physical device** and connect it to your local server over
 ### Group Chats
 
 <div align="center">
-  <img src="./readme-images/group.png" alt="Groups List Screen" width="40%" />
+  <img src="./assets/group.png" alt="Groups List Screen" width="40%" />
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./readme-images/group_msg.png" alt="Group Chat Screen" width="40%" />
+  <img src="./assets/group_msg.png" alt="Group Chat Screen" width="40%" />
 </div>
 
 ---
