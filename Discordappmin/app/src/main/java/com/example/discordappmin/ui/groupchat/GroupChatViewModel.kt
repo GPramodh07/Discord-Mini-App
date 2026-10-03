@@ -37,8 +37,9 @@ class GroupChatViewModel : ViewModel() {
     )
 
     val messages: StateFlow<List<Message>> = combine(ChatRepository.messages, _activeGroupId) { allMessages, gId ->
+        if (gId.isBlank()) return@combine emptyList()
         allMessages.filter { msg ->
-            msg.groupId == gId
+            !msg.groupId.isNullOrEmpty() && msg.groupId == gId
         }
     }.stateIn(
         scope = viewModelScope,
