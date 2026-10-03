@@ -29,7 +29,7 @@
 <br/>
 
 <a href="https://github.com/GPramodh07/Discord-Mini-App/releases/download/v1.0.0/DiscordMini_v1.0.apk">
-  <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DISCORDMINI_APK-v1.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Download DiscordMini APK" />
+  <img src="./assets/download_button.svg" width="420" alt="Download DiscordMini APK" />
 </a>
 
 </div>
@@ -102,7 +102,7 @@ Click the button below to download the compiled Android APK directly to your pho
 <div align="center">
 
 <a href="https://github.com/GPramodh07/Discord-Mini-App/releases/download/v1.0.0/DiscordMini_v1.0.apk">
-  <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DISCORDMINI_APK-v1.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Download APK" />
+  <img src="./assets/download_button.svg" width="420" alt="Download DiscordMini APK" />
 </a>
 
 </div>
