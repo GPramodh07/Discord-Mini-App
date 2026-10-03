@@ -32,6 +32,17 @@
 **/Thumbs.db
 **/*.log
 
+# Secrets, Keys & Credentials
+**/*.pem
+**/*.key
+**/*.pub
+**/*.keystore
+**/*.jks
+**/*.p12
+**/*.pfx
+**/*.env
+**/*.env.*
+
 # Personal / Scratch files & folders
 md files/
 usb.txt
@@ -39,3 +50,4 @@ Discordappmin/plan.md
 Discordappmin/ui.md
 assignment docx/
 readme-images/
+discordmini-server-key.pem
