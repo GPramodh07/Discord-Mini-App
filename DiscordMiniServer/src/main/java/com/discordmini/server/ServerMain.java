@@ -27,6 +27,8 @@ public class ServerMain {
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
+                clientSocket.setKeepAlive(true);
+                clientSocket.setTcpNoDelay(true);
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
                 threadPool.execute(clientHandler);
             }

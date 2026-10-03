@@ -52,10 +52,15 @@ public class ClientHandler implements Runnable {
 
     private void processMessage(String rawJson) {
         try {
+            Logger.info("RAW INCOMING (" + (currentUsername != null ? currentUsername : "Anonymous") + "): " + rawJson);
             ProtocolMessage message = ProtocolMessage.fromJsonString(rawJson);
             if (message.getType() == null) return;
 
             switch (message.getType()) {
+                case "PING":
+                    ProtocolMessage pong = new ProtocolMessage("PONG", "SERVER", currentUsername, "PONG");
+                    sendMessage(pong);
+                    break;
                 case "REGISTER":
                     handleRegister(rawJson);
                     break;
