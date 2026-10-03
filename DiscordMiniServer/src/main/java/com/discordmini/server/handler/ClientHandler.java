@@ -52,10 +52,15 @@ public class ClientHandler implements Runnable {
 
     private void processMessage(String rawJson) {
         try {
+            Logger.info("RAW INCOMING (" + (currentUsername != null ? currentUsername : "Anonymous") + "): " + rawJson);
             ProtocolMessage message = ProtocolMessage.fromJsonString(rawJson);
             if (message.getType() == null) return;
 
             switch (message.getType()) {
+                case "PING":
+                    ProtocolMessage pong = new ProtocolMessage("PONG", "SERVER", currentUsername, "PONG");
+                    sendMessage(pong);
+                    break;
                 case "REGISTER":
                     handleRegister(rawJson);
                     break;
@@ -113,9 +118,20 @@ public class ClientHandler implements Runnable {
             return;
         }
 
+        // OLD STRICT LOGIN CHECK (Commented out for AWS EC2 / Network Reconnect stability):
+        /*
         if (SessionRegistry.isUserOnline(username)) {
             sendError("User is already logged in elsewhere");
             return;
+        }
+        */
+
+        // NEW LOGIC: If user reconnects while an old stale socket exists, disconnect the old handler and accept the new one
+        ClientHandler oldHandler = SessionRegistry.getSession(username);
+        if (oldHandler != null && oldHandler != this) {
+            Logger.info("Reconnecting user '" + username + "': replacing stale session.");
+            oldHandler.currentUsername = null; // Prevent old handler cleanup from unregistering current session or broadcasting OFFLINE
+            try { oldHandler.socket.close(); } catch (IOException ignored) {}
         }
 
         this.currentUsername = username;
@@ -304,9 +320,14 @@ public class ClientHandler implements Runnable {
     private void cleanup() {
         isRunning = false;
         if (currentUsername != null) {
-            SessionRegistry.unregisterSession(currentUsername);
-            dbManager.updateUserStatus(currentUsername, "OFFLINE");
-            broadcastPresence("OFFLINE");
+            ClientHandler activeHandler = SessionRegistry.getSession(currentUsername);
+            if (activeHandler == this) {
+                SessionRegistry.unregisterSession(currentUsername, this);
+                dbManager.updateUserStatus(currentUsername, "OFFLINE");
+                broadcastPresence("OFFLINE");
+            } else {
+                Logger.info("Stale socket closed for: " + currentUsername + " (active session preserved)");
+            }
         }
         try {
             if (socket != null && !socket.isClosed()) {

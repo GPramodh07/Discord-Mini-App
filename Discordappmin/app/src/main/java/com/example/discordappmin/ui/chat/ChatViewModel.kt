@@ -17,11 +17,18 @@ class ChatViewModel : ViewModel() {
     val messages: StateFlow<List<Message>> = combine(ChatRepository.messages, _recipientUserId, ChatRepository.currentUser) { allMessages, recipient, currentUser ->
         val me = currentUser?.username?.lowercase() ?: ""
         val target = recipient.lowercase()
+        if (target.isBlank()) return@combine emptyList()
+
         allMessages.filter { msg ->
-            // Message from recipient to me
-            (msg.fromUserId.lowercase() == target && (msg.recipientId == null || msg.recipientId.lowercase() == me)) ||
-            // Message from me to recipient
-            (msg.isMine && (msg.recipientId == null || msg.recipientId.lowercase() == target))
+            // Strictly exclude group messages from 1:1 DM view
+            if (!msg.groupId.isNullOrEmpty()) return@filter false
+
+            val sender = msg.fromUserId.lowercase()
+            val rec = msg.recipientId?.lowercase() ?: ""
+
+            // Message from recipient to me OR message from me to recipient
+            (sender == target && (rec == me || rec.isEmpty())) ||
+            (sender == me && (rec == target || rec.isEmpty()))
         }
     }.stateIn(
         scope = viewModelScope,

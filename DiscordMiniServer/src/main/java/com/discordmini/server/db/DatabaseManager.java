@@ -257,9 +257,18 @@ public class DatabaseManager {
 
     public List<ProtocolMessage> getChatHistoryForUser(String username) {
         List<ProtocolMessage> list = new ArrayList<>();
+        // OLD UNFILTERED SQL QUERY (Commented out):
+        /*
         String sql = "SELECT * FROM messages WHERE " +
                      "sender = ? OR recipient = ? OR " +
                      "group_id IN (SELECT group_id FROM group_members WHERE username = ?) " +
+                     "ORDER BY timestamp ASC";
+        */
+
+        // NEW FILTERED SQL QUERY (Prevents 1:1 messages from mixing with group messages or leaking into unrelated chats):
+        String sql = "SELECT * FROM messages WHERE " +
+                     "(recipient = ? OR (sender = ? AND group_id IS NULL)) OR " +
+                     "(group_id IS NOT NULL AND group_id IN (SELECT group_id FROM group_members WHERE username = ?)) " +
                      "ORDER BY timestamp ASC";
         try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);

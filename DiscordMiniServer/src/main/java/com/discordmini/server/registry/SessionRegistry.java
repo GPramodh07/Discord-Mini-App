@@ -12,20 +12,23 @@ public class SessionRegistry {
 
     public static boolean registerSession(String username, ClientHandler handler) {
         if (username == null || handler == null) return false;
-        ClientHandler existing = activeSessions.putIfAbsent(username, handler);
-        if (existing == null) {
-            Logger.info("User '" + username + "' registered in active sessions.");
-            return true;
+        ClientHandler oldSession = activeSessions.put(username, handler);
+        if (oldSession != null && oldSession != handler) {
+            Logger.info("User '" + username + "' session replaced with new connection.");
         } else {
-            Logger.warn("Session register conflict: User '" + username + "' is already logged in.");
-            return false;
+            Logger.info("User '" + username + "' registered in active sessions.");
         }
+        return true;
     }
 
-    public static void unregisterSession(String username) {
-        if (username != null) {
-            activeSessions.remove(username);
-            Logger.info("User '" + username + "' removed from active sessions.");
+    public static void unregisterSession(String username, ClientHandler handler) {
+        if (username != null && handler != null) {
+            boolean removed = activeSessions.remove(username, handler);
+            if (removed) {
+                Logger.info("User '" + username + "' removed from active sessions.");
+            } else {
+                Logger.info("Stale connection closed for '" + username + "', active session retained.");
+            }
         }
     }
 
