@@ -23,13 +23,16 @@ object ChatRepository {
     var SERVER_HOST: String = "16.176.129.149" 
     var SERVER_PORT: Int = 5000
 
-    // USB ADB Reverse / Localhost (Uncomment if testing locally)
+    // USB ADB Reverse / Localhost (Uncomment to revert to USB config)
     // var SERVER_HOST: String = "127.0.0.1" 
 
     // Additional local fallbacks
     // var SERVER_HOST: String = "10.0.2.2"  // Android Emulator
     // var SERVER_HOST: String = "10.8.139.239" // Local Wi-Fi
     // ----------------------------------------------------
+
+    // Store password for automatic reconnection (set during login)
+    private var storedPassword: String = ""
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
@@ -112,6 +115,7 @@ object ChatRepository {
 
         if (success) {
             _currentUser.value = User(id = cleanUser, username = cleanUser, isOnline = true)
+            storedPassword = cleanPass
             updatePresence(cleanUser, true)
         }
 
@@ -156,7 +160,7 @@ object ChatRepository {
         // if (!connected) connected = SocketClient.connect("10.8.139.239", 5000)
         // if (!connected) connected = SocketClient.connect("10.0.2.2", 5000)
         if (connected) {
-            val loginPacket = SocketPacket(type = "LOGIN", sender = me, content = "123")
+            val loginPacket = SocketPacket(type = "LOGIN", sender = me, content = storedPassword)
             SocketClient.sendPacket(loginPacket)
         }
         return connected

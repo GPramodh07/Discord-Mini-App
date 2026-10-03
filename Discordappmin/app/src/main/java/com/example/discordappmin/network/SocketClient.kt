@@ -9,6 +9,8 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.Socket
+import java.util.Timer
+import java.util.TimerTask
 
 object SocketClient {
     private var socket: Socket? = null
@@ -16,6 +18,13 @@ object SocketClient {
     private var reader: BufferedReader? = null
     var isConnected = false
         private set
+
+    // Heartbeat timer to keep connection alive through NAT gateways on public internet
+    // (Not needed for USB/localhost but harmless to keep running)
+    private var heartbeatTimer: Timer? = null
+    // Heartbeat interval in milliseconds (10 seconds)
+    // Comment out or increase this value if reverting to USB config where heartbeat is unnecessary
+    private const val HEARTBEAT_INTERVAL_MS = 10_000L
 
     private val _incomingPackets = MutableSharedFlow<SocketPacket>(extraBufferCapacity = 64)
     val incomingPackets: SharedFlow<SocketPacket> = _incomingPackets.asSharedFlow()
@@ -39,12 +48,46 @@ object SocketClient {
                     listenLoop()
                 }.start()
 
+                // Start heartbeat timer to prevent NAT idle timeout on public internet
+                startHeartbeat()
+
                 true
             } catch (e: Exception) {
                 e.printStackTrace()
                 false
             }
         }
+    }
+
+    private fun startHeartbeat() {
+        stopHeartbeat()
+        heartbeatTimer = Timer("SocketHeartbeat", true).apply {
+            scheduleAtFixedRate(object : TimerTask() {
+                override fun run() {
+                    try {
+                        if (isConnected) {
+                            val pingPacket = SocketPacket(type = "PING", sender = "client", content = "PING")
+                            writer?.let {
+                                it.println(pingPacket.toJsonString())
+                                if (it.checkError()) {
+                                    android.util.Log.e("SocketClient", "Heartbeat failed, connection lost")
+                                    disconnect()
+                                }
+                            }
+                        } else {
+                            stopHeartbeat()
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("SocketClient", "Heartbeat error", e)
+                    }
+                }
+            }, HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS)
+        }
+    }
+
+    private fun stopHeartbeat() {
+        heartbeatTimer?.cancel()
+        heartbeatTimer = null
     }
 
     private fun listenLoop() {
@@ -56,6 +99,11 @@ object SocketClient {
                     android.util.Log.d("SocketClient", "RX: $line")
                     try {
                         val packet = SocketPacket.fromJsonString(line)
+                        // Filter out PONG heartbeat responses — don't emit them as messages
+                        if (packet.type == "PONG") {
+                            android.util.Log.d("SocketClient", "Heartbeat PONG received")
+                            continue
+                        }
                         _incomingPackets.tryEmit(packet)
                     } catch (e: Exception) {
                         // Fallback for non-JSON lines (e.g. raw text from terminal)
@@ -98,6 +146,7 @@ object SocketClient {
 
     fun disconnect() {
         isConnected = false
+        stopHeartbeat()
         try {
             socket?.close()
         } catch (e: Exception) {
