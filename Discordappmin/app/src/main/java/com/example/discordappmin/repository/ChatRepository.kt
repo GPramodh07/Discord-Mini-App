@@ -20,7 +20,7 @@ object ChatRepository {
     // Server Host & Port Configuration
     // ----------------------------------------------------
     // Deployed Cloud VPS Server (Active)
-    var SERVER_HOST: String = "16.176.129.149" 
+    var SERVER_HOST: String = "3.106.255.165" 
     var SERVER_PORT: Int = 5000
 
     // USB ADB Reverse / Localhost (Uncomment to revert to USB config)
