@@ -26,7 +26,9 @@ object SocketClient {
                 if (isConnected) disconnect()
                 
                 val s = Socket()
-                s.connect(java.net.InetSocketAddress(host, port), 3000)
+                s.keepAlive = true
+                s.tcpNoDelay = true
+                s.connect(java.net.InetSocketAddress(host, port), 5000)
                 socket = s
                 writer = PrintWriter(s.getOutputStream(), true)
                 reader = BufferedReader(InputStreamReader(s.getInputStream()))
