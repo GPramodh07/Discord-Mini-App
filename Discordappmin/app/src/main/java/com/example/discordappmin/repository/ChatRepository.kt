@@ -119,6 +119,16 @@ object ChatRepository {
             _currentUser.value = User(id = cleanUser, username = cleanUser, isOnline = true)
             storedPassword = cleanPass
             updatePresence(cleanUser, true)
+
+            // Start Foreground Service to keep TCP connection alive in background
+            try {
+                com.example.discordappmin.service.SocketForegroundService.startService(
+                    com.example.discordappmin.DiscordApplication.instance,
+                    cleanUser
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("ChatRepository", "Failed to start SocketForegroundService", e)
+            }
         }
 
         return success

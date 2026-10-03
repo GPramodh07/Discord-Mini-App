@@ -188,6 +188,16 @@ object SocketClient {
                     // Restart heartbeat
                     startHeartbeat()
 
+                    // Ensure Foreground Service is active
+                    try {
+                        com.example.discordappmin.service.SocketForegroundService.startService(
+                            com.example.discordappmin.DiscordApplication.instance,
+                            lastUsername
+                        )
+                    } catch (e: Exception) {
+                        android.util.Log.e("SocketClient", "Error starting foreground service on reconnect", e)
+                    }
+
                 } catch (e: Exception) {
                     android.util.Log.e("SocketClient", "Reconnect attempt $attempt failed: ${e.message}")
                 }
@@ -231,6 +241,16 @@ object SocketClient {
         socket = null
         writer = null
         reader = null
+
+        if (skipReconnect) {
+            try {
+                com.example.discordappmin.service.SocketForegroundService.stopService(
+                    com.example.discordappmin.DiscordApplication.instance
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("SocketClient", "Error stopping foreground service", e)
+            }
+        }
 
         // Trigger auto-reconnect if this was an unexpected disconnect (not a manual disconnect)
         if (wasConnected && !skipReconnect) {
