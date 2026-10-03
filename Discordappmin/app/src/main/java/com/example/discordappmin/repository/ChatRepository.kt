@@ -23,8 +23,10 @@ object ChatRepository {
     var SERVER_HOST: String = "16.176.129.149" 
     var SERVER_PORT: Int = 5000
 
-    // Local / Ngrok / USB debugging fallbacks (Uncomment if testing locally)
-    // var SERVER_HOST: String = "127.0.0.1" // USB ADB Reverse
+    // USB ADB Reverse / Localhost (Uncomment if testing locally)
+    // var SERVER_HOST: String = "127.0.0.1" 
+
+    // Additional local fallbacks
     // var SERVER_HOST: String = "10.0.2.2"  // Android Emulator
     // var SERVER_HOST: String = "10.8.139.239" // Local Wi-Fi
     // ----------------------------------------------------
