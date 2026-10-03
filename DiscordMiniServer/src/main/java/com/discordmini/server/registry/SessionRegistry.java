@@ -21,10 +21,14 @@ public class SessionRegistry {
         return true;
     }
 
-    public static void unregisterSession(String username) {
-        if (username != null) {
-            activeSessions.remove(username);
-            Logger.info("User '" + username + "' removed from active sessions.");
+    public static void unregisterSession(String username, ClientHandler handler) {
+        if (username != null && handler != null) {
+            boolean removed = activeSessions.remove(username, handler);
+            if (removed) {
+                Logger.info("User '" + username + "' removed from active sessions.");
+            } else {
+                Logger.info("Stale connection closed for '" + username + "', active session retained.");
+            }
         }
     }
 

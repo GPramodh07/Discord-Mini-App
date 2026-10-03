@@ -320,9 +320,14 @@ public class ClientHandler implements Runnable {
     private void cleanup() {
         isRunning = false;
         if (currentUsername != null) {
-            SessionRegistry.unregisterSession(currentUsername);
-            dbManager.updateUserStatus(currentUsername, "OFFLINE");
-            broadcastPresence("OFFLINE");
+            ClientHandler activeHandler = SessionRegistry.getSession(currentUsername);
+            if (activeHandler == this) {
+                SessionRegistry.unregisterSession(currentUsername, this);
+                dbManager.updateUserStatus(currentUsername, "OFFLINE");
+                broadcastPresence("OFFLINE");
+            } else {
+                Logger.info("Stale socket closed for: " + currentUsername + " (active session preserved)");
+            }
         }
         try {
             if (socket != null && !socket.isClosed()) {
