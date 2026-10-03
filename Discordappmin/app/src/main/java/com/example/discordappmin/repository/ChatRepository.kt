@@ -17,11 +17,17 @@ import kotlinx.coroutines.withTimeoutOrNull
 object ChatRepository {
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    // Option 2: Ngrok Public TCP Host & Port Configuration (Commented out for USB testing)
-    // var NGROK_HOST: String = "0.tcp.in.ngrok.io" 
-    // var NGROK_PORT: Int = 23356
-    var NGROK_HOST: String = ""
-    var NGROK_PORT: Int = 5000
+    // Server Host & Port Configuration
+    // ----------------------------------------------------
+    // Deployed Cloud VPS Server (Active)
+    var SERVER_HOST: String = "16.176.129.149" 
+    var SERVER_PORT: Int = 5000
+
+    // Local / Ngrok / USB debugging fallbacks (Uncomment if testing locally)
+    // var SERVER_HOST: String = "127.0.0.1" // USB ADB Reverse
+    // var SERVER_HOST: String = "10.0.2.2"  // Android Emulator
+    // var SERVER_HOST: String = "10.8.139.239" // Local Wi-Fi
+    // ----------------------------------------------------
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
@@ -61,24 +67,15 @@ object ChatRepository {
 
         var connected = false
 
-        // 1. Ngrok Public TCP Tunnel (Commented out for USB testing)
-        // if (NGROK_HOST.isNotBlank()) {
-        //     connected = SocketClient.connect(NGROK_HOST, NGROK_PORT)
-        // }
+        // 1. Primary Deployed Cloud VPS Server (16.176.129.149:5000)
+        if (SERVER_HOST.isNotBlank()) {
+            connected = SocketClient.connect(SERVER_HOST, SERVER_PORT)
+        }
 
-        // 2. USB / ADB Reverse / Local Network Fallbacks (Kept for testing & USB debugging)
-        if (!connected) {
-            // ADB USB Reverse port forwarding (127.0.0.1:5000)
-            connected = SocketClient.connect("127.0.0.1", port)
-        }
-        if (!connected) {
-            // Real Wi-Fi network IP
-            connected = SocketClient.connect("10.8.139.239", port)
-        }
-        if (!connected) {
-            // Android Emulator loopback
-            connected = SocketClient.connect("10.0.2.2", port)
-        }
+        // 2. Local Fallbacks (Uncomment if needed for local debugging)
+        // if (!connected) connected = SocketClient.connect("127.0.0.1", port) // ADB USB Reverse
+        // if (!connected) connected = SocketClient.connect("10.8.139.239", port) // Local Wi-Fi IP
+        // if (!connected) connected = SocketClient.connect("10.0.2.2", port) // Android Emulator
 
         if (!connected) {
             // Offline fallback: basic local validation
@@ -149,12 +146,13 @@ object ChatRepository {
         if (SocketClient.isConnected) return true
         val me = _currentUser.value?.username ?: return false
         var connected = false
-        if (NGROK_HOST.isNotBlank()) {
-            connected = SocketClient.connect(NGROK_HOST, NGROK_PORT)
+        if (SERVER_HOST.isNotBlank()) {
+            connected = SocketClient.connect(SERVER_HOST, SERVER_PORT)
         }
-        if (!connected) connected = SocketClient.connect("127.0.0.1", 5000)
-        if (!connected) connected = SocketClient.connect("10.8.139.239", 5000)
-        if (!connected) connected = SocketClient.connect("10.0.2.2", 5000)
+        // Local Fallbacks (Uncomment if needed for local debugging)
+        // if (!connected) connected = SocketClient.connect("127.0.0.1", 5000)
+        // if (!connected) connected = SocketClient.connect("10.8.139.239", 5000)
+        // if (!connected) connected = SocketClient.connect("10.0.2.2", 5000)
         if (connected) {
             val loginPacket = SocketPacket(type = "LOGIN", sender = me, content = "123")
             SocketClient.sendPacket(loginPacket)
