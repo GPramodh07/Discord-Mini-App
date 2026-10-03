@@ -19,21 +19,42 @@ object SocketClient {
     var isConnected = false
         private set
 
-    // Heartbeat timer to keep connection alive through NAT gateways on public internet
-    // (Not needed for USB/localhost but harmless to keep running)
+    // Store connection details for auto-reconnection
+    private var lastHost: String = ""
+    private var lastPort: Int = 5000
+
+    // Store login credentials for auto re-login after reconnection
+    var lastUsername: String = ""
+        private set
+    var lastPassword: String = ""
+        private set
+
+    // Heartbeat timer to keep connection alive through NAT gateways
     private var heartbeatTimer: Timer? = null
-    // Heartbeat interval in milliseconds (10 seconds)
-    // Comment out or increase this value if reverting to USB config where heartbeat is unnecessary
-    private const val HEARTBEAT_INTERVAL_MS = 10_000L
+    private const val HEARTBEAT_INTERVAL_MS = 10_000L // 10 seconds
+
+    // Auto-reconnection settings
+    private var autoReconnectEnabled = true
+    private var reconnecting = false
+    private const val RECONNECT_DELAY_MS = 3_000L // 3 seconds between reconnect attempts
+    private const val MAX_RECONNECT_ATTEMPTS = 10
 
     private val _incomingPackets = MutableSharedFlow<SocketPacket>(extraBufferCapacity = 64)
     val incomingPackets: SharedFlow<SocketPacket> = _incomingPackets.asSharedFlow()
 
+    fun storeCredentials(username: String, password: String) {
+        lastUsername = username
+        lastPassword = password
+    }
+
     suspend fun connect(host: String = "10.0.2.2", port: Int = 5000): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                if (isConnected) disconnect()
-                
+                if (isConnected) disconnect(skipReconnect = true)
+
+                lastHost = host
+                lastPort = port
+
                 val s = Socket()
                 s.keepAlive = true
                 s.tcpNoDelay = true
@@ -42,18 +63,20 @@ object SocketClient {
                 writer = PrintWriter(s.getOutputStream(), true)
                 reader = BufferedReader(InputStreamReader(s.getInputStream()))
                 isConnected = true
+                reconnecting = false
 
                 // Start listening thread
                 Thread {
                     listenLoop()
                 }.start()
 
-                // Start heartbeat timer to prevent NAT idle timeout on public internet
+                // Start heartbeat timer to prevent NAT idle timeout
                 startHeartbeat()
 
+                android.util.Log.d("SocketClient", "Connected to $host:$port")
                 true
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("SocketClient", "Connect failed to $host:$port", e)
                 false
             }
         }
@@ -70,7 +93,7 @@ object SocketClient {
                             writer?.let {
                                 it.println(pingPacket.toJsonString())
                                 if (it.checkError()) {
-                                    android.util.Log.e("SocketClient", "Heartbeat failed, connection lost")
+                                    android.util.Log.e("SocketClient", "Heartbeat failed, triggering reconnect")
                                     disconnect()
                                 }
                             }
@@ -99,14 +122,13 @@ object SocketClient {
                     android.util.Log.d("SocketClient", "RX: $line")
                     try {
                         val packet = SocketPacket.fromJsonString(line)
-                        // Filter out PONG heartbeat responses — don't emit them as messages
+                        // Filter out PONG heartbeat responses
                         if (packet.type == "PONG") {
                             android.util.Log.d("SocketClient", "Heartbeat PONG received")
                             continue
                         }
                         _incomingPackets.tryEmit(packet)
                     } catch (e: Exception) {
-                        // Fallback for non-JSON lines (e.g. raw text from terminal)
                         val packet = SocketPacket(
                             type = "PRIVATE_MSG",
                             sender = "Server",
@@ -117,11 +139,64 @@ object SocketClient {
                 }
             }
         } catch (e: Exception) {
-            android.util.Log.e("SocketClient", "Listen loop error", e)
+            android.util.Log.e("SocketClient", "Listen loop error: ${e.message}")
         } finally {
             android.util.Log.d("SocketClient", "Listening loop stopped")
             disconnect()
         }
+    }
+
+    /**
+     * Auto-reconnection: runs in a background thread.
+     * Attempts to reconnect to the last known host/port and re-login with stored credentials.
+     */
+    private fun attemptAutoReconnect() {
+        if (!autoReconnectEnabled || reconnecting || lastHost.isBlank() || lastUsername.isBlank()) return
+        reconnecting = true
+
+        Thread {
+            android.util.Log.d("SocketClient", "Auto-reconnect starting for user '$lastUsername' to $lastHost:$lastPort")
+            var attempt = 0
+            while (attempt < MAX_RECONNECT_ATTEMPTS && !isConnected && reconnecting) {
+                attempt++
+                android.util.Log.d("SocketClient", "Reconnect attempt $attempt/$MAX_RECONNECT_ATTEMPTS")
+                try {
+                    Thread.sleep(RECONNECT_DELAY_MS)
+
+                    val s = Socket()
+                    s.keepAlive = true
+                    s.tcpNoDelay = true
+                    s.connect(java.net.InetSocketAddress(lastHost, lastPort), 5000)
+                    socket = s
+                    writer = PrintWriter(s.getOutputStream(), true)
+                    reader = BufferedReader(InputStreamReader(s.getInputStream()))
+                    isConnected = true
+                    reconnecting = false
+
+                    android.util.Log.d("SocketClient", "Reconnected to $lastHost:$lastPort")
+
+                    // Re-send LOGIN with stored credentials
+                    val loginPacket = SocketPacket(type = "LOGIN", sender = lastUsername, content = lastPassword)
+                    writer?.println(loginPacket.toJsonString())
+                    android.util.Log.d("SocketClient", "Re-login sent for '$lastUsername'")
+
+                    // Restart listening thread
+                    Thread {
+                        listenLoop()
+                    }.start()
+
+                    // Restart heartbeat
+                    startHeartbeat()
+
+                } catch (e: Exception) {
+                    android.util.Log.e("SocketClient", "Reconnect attempt $attempt failed: ${e.message}")
+                }
+            }
+            if (!isConnected) {
+                android.util.Log.e("SocketClient", "Auto-reconnect gave up after $MAX_RECONNECT_ATTEMPTS attempts")
+            }
+            reconnecting = false
+        }.start()
     }
 
     suspend fun sendPacket(packet: SocketPacket): Boolean {
@@ -144,7 +219,8 @@ object SocketClient {
         }
     }
 
-    fun disconnect() {
+    fun disconnect(skipReconnect: Boolean = false) {
+        val wasConnected = isConnected
         isConnected = false
         stopHeartbeat()
         try {
@@ -155,5 +231,11 @@ object SocketClient {
         socket = null
         writer = null
         reader = null
+
+        // Trigger auto-reconnect if this was an unexpected disconnect (not a manual disconnect)
+        if (wasConnected && !skipReconnect) {
+            android.util.Log.d("SocketClient", "Unexpected disconnect detected, attempting auto-reconnect...")
+            attemptAutoReconnect()
+        }
     }
 }

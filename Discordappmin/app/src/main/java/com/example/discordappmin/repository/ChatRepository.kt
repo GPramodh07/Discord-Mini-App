@@ -98,7 +98,9 @@ object ChatRepository {
             return isValid
         }
 
-        // Server is reachable — send LOGIN and wait for ACK
+        // Server is reachable — store credentials for auto-reconnection and send LOGIN
+        SocketClient.storeCredentials(cleanUser, cleanPass)
+
         val deferred = CompletableDeferred<Boolean>()
         loginDeferred = deferred
 
