@@ -6,7 +6,7 @@
 
 # ⚡ DiscordMini
 
-### *Real-Time Distributed Messaging App — Built from Scratch*
+### *Real-Time Distributed Messaging Ecosystem — Built from Scratch*
 
 <br/>
 
@@ -24,7 +24,7 @@
 
 <br/>
 
-> **DiscordMini** is a full-stack real-time messaging ecosystem featuring a modern **Jetpack Compose Android Client** powered by an **Android Foreground Service** connected to a multithreaded **Java TCP Socket Backend** deployed on **AWS EC2**.
+> **DiscordMini** is a full-stack real-time messaging ecosystem featuring a modern **Jetpack Compose Android Client** powered by an **Android Foreground Service** connected to a multithreaded **Java TCP Socket Backend** deployed live on **AWS EC2**.
 
 <br/>
 
@@ -40,29 +40,35 @@
 
 <div align="center">
 
-| 💬 **Direct Messages** | 📩 **Private Chat** | 👥 **Group Channels** | 💬 **Group Chat** |
+| 🔐 **Authentication** | 💬 **Direct Messages** | 👥 **Group Channels** | 💬 **Group Chat** |
 |:---:|:---:|:---:|:---:|
-| <img src="./assets/chat.png" width="210" alt="DM List"/> | <img src="./assets/chat_msg.png" width="210" alt="Direct Chat"/> | <img src="./assets/group.png" width="210" alt="Groups List"/> | <img src="./assets/group_msg.png" width="210" alt="Group Chat"/> |
+| ![Login Screen](assets/login_page.jpeg) | ![DM List](assets/chat.jpeg) | ![Groups List](assets/groups.jpeg) | ![Group Chat](assets/group_chat.jpeg) |
 
 </div>
 
 ---
 
-## ✨ Features Highlight
+## ✨ Production Feature Highlights
 
-- 🚀 **Production Ready APK Release**: Download and run instantly on any Android device ([**Download v1.0.0 APK**](https://github.com/GPramodh07/Discord-Mini-App/releases/download/v1.0.0/DiscordMini_v1.0.apk)).
-- ☁️ **AWS Cloud VPS Deployment**: Backend running live on AWS EC2 (`3.106.255.165:5000`) with fallback support for local USB ADB reverse debugging (`127.0.0.1`).
-- 🔋 **Android Foreground Service & Battery Optimization**: Includes `SocketForegroundService` with a CPU `PARTIAL_WAKE_LOCK` to keep TCP sockets connected when minimized, locked, or running across Android App Clones.
-- 💬 **Strict 1:1 DMs & Group Channels**: Direct messaging isolated cleanly from multi-user group chats.
-- 🚪 **Explicit User Logout**: Top-bar action button with confirmation modal sending `PRESENCE OFFLINE` packets, closing TCP sockets, stopping foreground services, and clearing navigation backstacks.
-- 🗑️ **Cross-Client Real-Time Delete**: Delete messages for everyone across all connected clients with SQLite DB synchronization.
-- 🟢 **Dynamic Presence Broadcasts**: Live green/gray online status indicators for connected contacts.
-- 🗄️ **SQLite Message & Group History Sync**: Automatically restores past conversations, group channels, and offline queued messages on login.
-- 🔀 **Multithreaded Concurrent Server**: Built with custom NDJSON protocol and concurrent session/group registries (`SessionRegistry`, `GroupRegistry`).
+- 🚀 **Production-Ready Android Release**: Pre-built Android APK ready for immediate deployment ([**Download v1.0.0 APK**](https://github.com/GPramodh07/Discord-Mini-App/releases/download/v1.0.0/DiscordMini_v1.0.apk)).
+- ☁️ **AWS Cloud VPS Backend**: Multithreaded TCP server deployed on AWS EC2 (`3.107.163.173:5000`) with automatic local fallback for USB ADB debugging (`127.0.0.1`).
+- ⚠️ **Comprehensive Error Handling & Authentication**:
+  - **Server Down Alert**: Displays `"Server is not running, contact admin"` when TCP connections fail.
+  - **Invalid Password**: Surfaced as `"Incorrect password. Please try again."`.
+  - **Account Verification**: Surfaced as `"User does not exist in database"`.
+- 🔴 **WhatsApp & Discord Style Unread Badges**: Real-time unread count badges (`1`, `2`, `99+`) rendered on the right corner of DM contacts and group items, automatically clearing upon entering the conversation.
+- 🔋 **Android Foreground Service & CPU WakeLocks**: `SocketForegroundService` uses a CPU `PARTIAL_WAKE_LOCK` to keep TCP socket connections alive when the app is minimized, screen-locked, or running in dual app clones.
+- 💬 **Strict 1:1 DMs & Group Channels**: Complete separation between private direct messages and multi-user group chat channels.
+- 🚪 **Explicit Disconnection & Logout**: Action bar logout with confirmation dialog sending `PRESENCE OFFLINE` packets, closing socket streams, stopping foreground services, and clearing navigation state.
+- 🗑️ **Cross-Client Real-Time Message Deletion**: Synchronized message deletion across all connected clients backed by SQLite database persistence.
+- 🟢 **Live Online Presence Indicators**: Real-time broadcast of online/offline status for contacts.
+- 🗄️ **SQLite Sync & Persistence**: Automatic history restoration, group channel loading, and offline message queueing powered by SQLite JDBC.
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ System Architecture & Protocol
+
+### Architecture Diagram
 
 ```mermaid
 graph TD
@@ -92,13 +98,23 @@ graph TD
     class SQLite storage;
 ```
 
+### Custom NDJSON Packet Protocol
+
+The Android client and Java backend communicate over raw TCP using line-delimited JSON objects:
+
+```json
+{"type":"LOGIN","sender":"alice","password":"123"}
+{"type":"PRIVATE_MSG","sender":"alice","recipient":"bob","content":"Hello Bob!","id":"msg-123"}
+{"type":"GROUP_MSG","sender":"alice","groupId":"g1","content":"Hey everyone!","id":"msg-456"}
+{"type":"DELETE_MSG","sender":"alice","content":"msg-123"}
+{"type":"ERROR","sender":"SERVER","recipient":"alice","content":"Incorrect password. Please try again."}
+```
+
 ---
 
-## 📲 Quick Download & Test Credentials
+## 📲 Download & Test Credentials
 
 ### 1️⃣ Download APK
-
-Click the button below to download the compiled Android APK directly to your phone:
 
 <div align="center">
 
@@ -110,8 +126,6 @@ Click the button below to download the compiled Android APK directly to your pho
 
 ### 2️⃣ Pre-Seeded Test Credentials
 
-Log in with any of the pre-configured accounts:
-
 | 👤 Username | 🔑 Password | 📌 Roles / Notes |
 |:-----------:|:-----------:|:-----------------|
 | `alice` | `123` | Active User (DM & Groups) |
@@ -119,7 +133,7 @@ Log in with any of the pre-configured accounts:
 | `carl` | `789` | Active User (DM & Groups) |
 | `don` | `101` | Active User (DM & Groups) |
 
-> 💡 **Tip**: Log into two accounts simultaneously (using two phones or Phone App Clones) to test live 2-way real-time messaging, group creation, online presence, and background message delivery!
+> 💡 **Testing Tip**: Log into two accounts simultaneously (using two physical phones or Android App Clones) to experience real-time 2-way messaging, unread counter pills, online status changes, and background socket connectivity.
 
 ---
 
@@ -131,42 +145,53 @@ DiscordMini/
 ├── Discordappmin/              # 📱 Android Client (Kotlin + Jetpack Compose)
 │   ├── app/
 │   │   ├── src/main/java/com/example/discordappmin/
-│   │   │   ├── network/        # SocketClient & SocketPacket
-│   │   │   ├── repository/     # ChatRepository (IP Config & State)
-│   │   │   ├── service/        # SocketForegroundService (Background Keep-Alive)
+│   │   │   ├── network/        # SocketClient & SocketPacket Protocol
+│   │   │   ├── repository/     # ChatRepository (IP Config, StateFlow & Login)
+│   │   │   ├── service/        # SocketForegroundService (Background Keep-Alive & WakeLock)
 │   │   │   └── ui/             # Jetpack Compose Screens & ViewModels
 │   └── build.gradle.kts
 │
-└── DiscordMiniServer/          # 🖥️ Backend Server (Java 17 + SQLite)
+└── DiscordMiniServer/          # 🖥️ Java TCP Backend Server (Java 17 + SQLite JDBC)
     ├── src/main/java/com/discordmini/server/
-    │   ├── db/                 # DatabaseManager (SQLite JDBC)
-    │   ├── handler/            # ClientHandler (NDJSON Protocol Parser)
+    │   ├── db/                 # DatabaseManager (SQLite JDBC CRUD)
+    │   ├── handler/            # ClientHandler (NDJSON Protocol Parser & Auth)
     │   └── registry/           # SessionRegistry & GroupRegistry
     └── lib/                    # json.jar, sqlite.jar
 ```
 
 ---
 
-## 💻 Building from Source
+## 💻 Building & Running from Source
 
-### Running the Java Server
+### 1️⃣ Java Server Backend
 
 ```bash
 cd DiscordMiniServer
 
-# Compile server code
+# Compile Java server source
 javac -d bin -cp "lib/*" $(find src -name "*.java")
 
-# Run the server on port 5000
+# Launch server on TCP port 5000
 java -cp "bin:lib/*" com.discordmini.server.ServerMain
 ```
 
-### Local USB ADB Debugging (Optional)
+### 2️⃣ Android Client
+
+Open `Discordappmin` in Android Studio and build the project, or build directly via Gradle wrapper:
+
+```bash
+cd Discordappmin
+
+# Build debug APK
+./gradlew assembleDebug
+```
+
+### 3️⃣ Local USB ADB Reverse (Optional)
 
 If running the backend locally instead of AWS EC2:
 
 ```bash
-# Reverse TCP port 5000 from phone to PC
+# Reverse TCP port 5000 from mobile device to PC
 ~/Android/Sdk/platform-tools/adb reverse tcp:5000 tcp:5000
 ```
 

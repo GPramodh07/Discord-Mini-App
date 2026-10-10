@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.discordappmin.repository.ChatRepository
+import com.example.discordappmin.repository.LoginResult
 import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
@@ -41,12 +42,15 @@ class LoginViewModel : ViewModel() {
         errorMessage = null
 
         viewModelScope.launch {
-            val success = ChatRepository.login(username.trim(), password.trim())
-            isLoading = false
-            if (success) {
-                onSuccess()
-            } else {
-                errorMessage = "Failed to connect to server or invalid credentials"
+            when (val result = ChatRepository.login(username.trim(), password.trim())) {
+                is LoginResult.Success -> {
+                    isLoading = false
+                    onSuccess()
+                }
+                is LoginResult.Error -> {
+                    isLoading = false
+                    errorMessage = result.message
+                }
             }
         }
     }

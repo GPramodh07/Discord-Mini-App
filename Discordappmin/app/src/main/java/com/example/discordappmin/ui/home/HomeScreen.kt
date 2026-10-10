@@ -55,6 +55,8 @@ fun HomeScreen(
     val users by viewModel.users.collectAsState()
     val groups by viewModel.groups.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
+    val unreadDms by viewModel.unreadDms.collectAsState()
+    val unreadGroups by viewModel.unreadGroups.collectAsState()
 
     var showLogoutDialog by remember { mutableStateOf(false) }
 
@@ -88,6 +90,8 @@ fun HomeScreen(
         title = titleText,
         users = users,
         groups = groups,
+        unreadDms = unreadDms,
+        unreadGroups = unreadGroups,
         onContactClick = onContactClick,
         onGroupClick = onGroupClick,
         onCreateGroupClick = onCreateGroupClick,
@@ -100,6 +104,8 @@ fun HomeScreenContent(
     title: String = "DiscordMini",
     users: List<User>,
     groups: List<Group>,
+    unreadDms: Map<String, Int> = emptyMap(),
+    unreadGroups: Map<String, Int> = emptyMap(),
     onContactClick: (String) -> Unit,
     onGroupClick: (String) -> Unit,
     onCreateGroupClick: () -> Unit,
@@ -150,11 +156,11 @@ fun HomeScreenContent(
                     )
                 }
             ) {
-                tabs.forEachIndexed { index, title ->
+                tabs.forEachIndexed { index, tabTitle ->
                     Tab(
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
-                        text = { Text(text = title, color = if (selectedTab == index) Color.White else Color.Gray) }
+                        text = { Text(text = tabTitle, color = if (selectedTab == index) Color.White else Color.Gray) }
                     )
                 }
             }
@@ -169,6 +175,7 @@ fun HomeScreenContent(
                         ContactListItem(
                             name = user.username,
                             isOnline = user.isOnline,
+                            unreadCount = unreadDms[user.username] ?: unreadDms[user.id] ?: 0,
                             onClick = { onContactClick(user.id) }
                         )
                     }
@@ -183,6 +190,7 @@ fun HomeScreenContent(
                         ContactListItem(
                             name = group.name,
                             subtitle = "${group.memberIds.size} members",
+                            unreadCount = unreadGroups[group.id] ?: 0,
                             onClick = { onGroupClick(group.id) }
                         )
                     }

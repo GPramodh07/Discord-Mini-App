@@ -49,6 +49,12 @@ class GroupChatViewModel : ViewModel() {
 
     fun loadMockGroupMessages(groupId: String) {
         _activeGroupId.value = groupId
+        ChatRepository.setActiveGroup(groupId)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        ChatRepository.setActiveGroup(null)
     }
 
     fun sendMessage(text: String) {

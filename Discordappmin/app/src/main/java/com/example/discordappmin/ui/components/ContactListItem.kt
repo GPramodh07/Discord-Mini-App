@@ -28,6 +28,7 @@ fun ContactListItem(
     name: String,
     isOnline: Boolean? = null,
     subtitle: String? = null,
+    unreadCount: Int = 0,
     onClick: () -> Unit
 ) {
     Row(
@@ -74,6 +75,25 @@ fun ContactListItem(
                 Text(
                     text = subtitle,
                     color = Color.Gray,
+                    fontSize = 12.sp
+                )
+            }
+        }
+
+        // Unread badge counter
+        if (unreadCount > 0) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(DiscordBlurple)
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
                 )
             }

@@ -30,6 +30,9 @@ class HomeViewModel : ViewModel() {
             initialValue = emptyList()
         )
 
+    val unreadDms: StateFlow<Map<String, Int>> = ChatRepository.unreadDms
+    val unreadGroups: StateFlow<Map<String, Int>> = ChatRepository.unreadGroups
+
     fun logout(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
             ChatRepository.logout()

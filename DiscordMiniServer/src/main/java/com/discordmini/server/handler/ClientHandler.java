@@ -113,8 +113,13 @@ public class ClientHandler implements Runnable {
         String username = json.has("username") ? json.optString("username") : json.optString("sender");
         String password = json.has("password") ? json.optString("password") : json.optString("content");
 
+        if (!dbManager.userExists(username)) {
+            sendError("User does not exist in database");
+            return;
+        }
+
         if (!dbManager.authenticateUser(username, password)) {
-            sendError("Invalid username or password");
+            sendError("Incorrect password. Please try again.");
             return;
         }
 
