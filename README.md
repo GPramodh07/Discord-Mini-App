@@ -42,7 +42,7 @@
 
 | 🔐 **Authentication** | 💬 **Direct Messages** | 👥 **Group Channels** | 💬 **Group Chat** |
 |:---:|:---:|:---:|:---:|
-| ![Login Screen](assets/login_page.jpeg) | ![DM List](assets/chat.jpeg) | ![Groups List](assets/groups.jpeg) | ![Group Chat](assets/group_chat.jpeg) |
+| <img src="assets/login_page.jpeg" width="220" alt="Login Screen"/> | <img src="assets/chat.jpeg" width="220" alt="DM List"/> | <img src="assets/groups.jpeg" width="220" alt="Groups List"/> | <img src="assets/group_chat.jpeg" width="220" alt="Group Chat"/> |
 
 </div>
 
