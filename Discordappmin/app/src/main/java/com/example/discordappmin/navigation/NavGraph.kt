@@ -39,7 +39,12 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
             HomeScreen(
                 onContactClick = { userId -> navController.navigate(Screen.Chat.createRoute(userId)) },
                 onGroupClick = { groupId -> navController.navigate(Screen.GroupChat.createRoute(groupId)) },
-                onCreateGroupClick = { navController.navigate(Screen.CreateGroup.route) }
+                onCreateGroupClick = { navController.navigate(Screen.CreateGroup.route) },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
         composable(Screen.Chat.route) { backStackEntry ->
