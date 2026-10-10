@@ -95,6 +95,18 @@ public class DatabaseManager {
         }
     }
 
+    public boolean userExists(String username) {
+        String sql = "SELECT 1 FROM users WHERE username = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            Logger.error("User existence check error for: " + username, e);
+        }
+        return false;
+    }
+
     public boolean authenticateUser(String username, String password) {
         String sql = "SELECT password FROM users WHERE username = ?";
         try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {

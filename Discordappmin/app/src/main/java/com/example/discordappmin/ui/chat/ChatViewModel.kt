@@ -38,6 +38,12 @@ class ChatViewModel : ViewModel() {
 
     fun loadMockMessages(userId: String) {
         _recipientUserId.value = userId
+        ChatRepository.setActiveChatUser(userId)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        ChatRepository.setActiveChatUser(null)
     }
 
     fun sendMessage(text: String) {

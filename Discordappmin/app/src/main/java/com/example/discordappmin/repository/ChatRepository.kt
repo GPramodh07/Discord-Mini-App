@@ -14,6 +14,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
+sealed class LoginResult {
+    object Success : LoginResult()
+    data class Error(val message: String) : LoginResult()
+}
+
 object ChatRepository {
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -46,8 +51,18 @@ object ChatRepository {
     private val _groups = MutableStateFlow<List<Group>>(emptyList())
     val groups: StateFlow<List<Group>> = _groups.asStateFlow()
 
+    // Unread message counters for WhatsApp / Discord style unread badges
+    private val _unreadDms = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val unreadDms: StateFlow<Map<String, Int>> = _unreadDms.asStateFlow()
+
+    private val _unreadGroups = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val unreadGroups: StateFlow<Map<String, Int>> = _unreadGroups.asStateFlow()
+
+    var activeChatUserId = MutableStateFlow("")
+    var activeGroupId = MutableStateFlow("")
+
     // Used to signal login result from packet handler back to login() coroutine
-    private var loginDeferred: CompletableDeferred<Boolean>? = null
+    private var loginDeferred: CompletableDeferred<String>? = null
 
     init {
         _onlineUsers.value = listOf(
@@ -66,42 +81,64 @@ object ChatRepository {
         }
     }
 
-    suspend fun login(username: String, password: String = "123", host: String = "10.0.2.2", port: Int = 5000): Boolean {
+    fun setActiveChatUser(userId: String?) {
+        val clean = userId?.lowercase() ?: ""
+        activeChatUserId.value = clean
+        if (clean.isNotEmpty()) {
+            clearUnreadDm(clean)
+        }
+    }
+
+    fun setActiveGroup(groupId: String?) {
+        val clean = groupId ?: ""
+        activeGroupId.value = clean
+        if (clean.isNotEmpty()) {
+            clearUnreadGroup(clean)
+        }
+    }
+
+    fun clearActiveGroup() {
+        activeGroupId.value = ""
+    }
+
+    fun clearUnreadDm(userId: String) {
+        val clean = userId.lowercase()
+        val current = _unreadDms.value.toMutableMap()
+        if (current.containsKey(clean)) {
+            current.remove(clean)
+            _unreadDms.value = current
+        }
+    }
+
+    fun clearUnreadGroup(groupId: String) {
+        val current = _unreadGroups.value.toMutableMap()
+        if (current.containsKey(groupId)) {
+            current.remove(groupId)
+            _unreadGroups.value = current
+        }
+    }
+
+    suspend fun login(username: String, password: String = "123", host: String = "10.0.2.2", port: Int = 5000): LoginResult {
         val cleanUser = username.trim().lowercase()
         val cleanPass = password.trim()
 
-        var connected = false
+        if (cleanUser.isEmpty()) {
+            return LoginResult.Error("Username cannot be empty")
+        }
 
-        // 1. Primary Deployed Cloud VPS Server (16.176.129.149:5000)
+        var connected = false
         if (SERVER_HOST.isNotBlank()) {
             connected = SocketClient.connect(SERVER_HOST, SERVER_PORT)
         }
 
-        // 2. Local Fallbacks (Uncomment if needed for local debugging)
-        // if (!connected) connected = SocketClient.connect("127.0.0.1", port) // ADB USB Reverse
-        // if (!connected) connected = SocketClient.connect("10.8.139.239", port) // Local Wi-Fi IP
-        // if (!connected) connected = SocketClient.connect("10.0.2.2", port) // Android Emulator
-
         if (!connected) {
-            // Offline fallback: basic local validation
-            val isValid = when (cleanUser) {
-                "alice" -> cleanPass == "123"
-                "bob" -> cleanPass == "456"
-                "carl" -> cleanPass == "789"
-                "don" -> cleanPass == "101"
-                else -> false
-            }
-            if (isValid) {
-                _currentUser.value = User(id = cleanUser, username = cleanUser, isOnline = true)
-                updatePresence(cleanUser, true)
-            }
-            return isValid
+            return LoginResult.Error("Server is not running, contact admin")
         }
 
         // Server is reachable — store credentials for auto-reconnection and send LOGIN
         SocketClient.storeCredentials(cleanUser, cleanPass)
 
-        val deferred = CompletableDeferred<Boolean>()
+        val deferred = CompletableDeferred<String>()
         loginDeferred = deferred
 
         val loginPacket = SocketPacket(
@@ -111,27 +148,30 @@ object ChatRepository {
         )
         SocketClient.sendPacket(loginPacket)
 
-        // Wait up to 5 seconds for LOGIN_SUCCESS or LOGIN_FAILED/ERROR from server
-        val success = withTimeoutOrNull(5000L) { deferred.await() } ?: false
+        // Wait up to 5 seconds for LOGIN_SUCCESS or ERROR from server
+        val resultStr = withTimeoutOrNull(5000L) { deferred.await() }
         loginDeferred = null
 
-        if (success) {
-            _currentUser.value = User(id = cleanUser, username = cleanUser, isOnline = true)
-            storedPassword = cleanPass
-            updatePresence(cleanUser, true)
+        return when {
+            resultStr == "SUCCESS" -> {
+                _currentUser.value = User(id = cleanUser, username = cleanUser, isOnline = true)
+                storedPassword = cleanPass
+                updatePresence(cleanUser, true)
 
-            // Start Foreground Service to keep TCP connection alive in background
-            try {
-                com.example.discordappmin.service.SocketForegroundService.startService(
-                    com.example.discordappmin.DiscordApplication.instance,
-                    cleanUser
-                )
-            } catch (e: Exception) {
-                android.util.Log.e("ChatRepository", "Failed to start SocketForegroundService", e)
+                // Start Foreground Service to keep TCP connection alive in background
+                try {
+                    com.example.discordappmin.service.SocketForegroundService.startService(
+                        com.example.discordappmin.DiscordApplication.instance,
+                        cleanUser
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("ChatRepository", "Failed to start SocketForegroundService", e)
+                }
+                LoginResult.Success
             }
+            resultStr != null -> LoginResult.Error(resultStr)
+            else -> LoginResult.Error("Server response timed out. Please try again.")
         }
-
-        return success
     }
 
     suspend fun logout() {
@@ -156,6 +196,10 @@ object ChatRepository {
         storedPassword = ""
         _messages.value = emptyList()
         _groups.value = emptyList()
+        _unreadDms.value = emptyMap()
+        _unreadGroups.value = emptyMap()
+        activeChatUserId.value = ""
+        activeGroupId.value = ""
 
         _onlineUsers.value = listOf(
             User(id = "alice", username = "alice", isOnline = false),
@@ -281,12 +325,15 @@ object ChatRepository {
             "ACK" -> {
                 val content = packet.content ?: ""
                 when {
-                    content == "LOGIN_SUCCESS" -> loginDeferred?.complete(true)
-                    content == "LOGIN_FAILED" || content.startsWith("Invalid") -> loginDeferred?.complete(false)
+                    content == "LOGIN_SUCCESS" -> loginDeferred?.complete("SUCCESS")
+                    content == "LOGIN_FAILED" -> loginDeferred?.complete("Invalid username or password")
+                    content.startsWith("LOGIN_FAILED_") -> loginDeferred?.complete(content.replace("LOGIN_FAILED_", ""))
+                    else -> loginDeferred?.complete(content)
                 }
             }
             "ERROR" -> {
-                loginDeferred?.complete(false)
+                val errorMsg = packet.content ?: "Authentication failed"
+                loginDeferred?.complete(errorMsg)
             }
             "DELETE_MSG" -> {
                 val msgId = packet.content ?: return
@@ -306,7 +353,7 @@ object ChatRepository {
                     recipientId = recipient,
                     text = text,
                     timestamp = packet.timestamp,
-                    isMine = (sender == me)
+                    isMine = (sender.lowercase() == me.lowercase())
                 )
                 val current = _messages.value
                 val isDuplicate = current.any { 
@@ -314,6 +361,13 @@ object ChatRepository {
                 }
                 if (!isDuplicate) {
                     _messages.value = current + msg
+                    // Increment unread count if message is received from contact when not currently viewing that DM
+                    if (sender.lowercase() != me.lowercase() && activeChatUserId.value.lowercase() != sender.lowercase()) {
+                        val unreads = _unreadDms.value.toMutableMap()
+                        val key = sender.lowercase()
+                        unreads[key] = (unreads[key] ?: 0) + 1
+                        _unreadDms.value = unreads
+                    }
                 }
             }
             "GROUP_MSG" -> {
@@ -328,7 +382,7 @@ object ChatRepository {
                     groupId = groupId,
                     text = text,
                     timestamp = packet.timestamp,
-                    isMine = (sender == me)
+                    isMine = (sender.lowercase() == me.lowercase())
                 )
                 val current = _messages.value
                 val isDuplicate = current.any { 
@@ -336,6 +390,12 @@ object ChatRepository {
                 }
                 if (!isDuplicate) {
                     _messages.value = current + msg
+                    // Increment unread count for group if message is from another member and group is not currently open
+                    if (sender.lowercase() != me.lowercase() && activeGroupId.value != groupId) {
+                        val unreads = _unreadGroups.value.toMutableMap()
+                        unreads[groupId] = (unreads[groupId] ?: 0) + 1
+                        _unreadGroups.value = unreads
+                    }
                 }
             }
             "CREATE_GROUP" -> {
