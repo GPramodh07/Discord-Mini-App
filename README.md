@@ -10,7 +10,8 @@
 
 <br/>
 
-[![Download APK](https://img.shields.io/badge/⚡_Download_APK-v2.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white)](https://github.com/GPramodh07/Discord-Mini-App/releases/download/v2.0.0/DiscordMiniApp_V2.0.0.apk)
+[![Download APK](https://img.shields.io/badge/⚡_Download_APK-GitHub_Release-5865F2?style=for-the-badge&logo=android&logoColor=white)](https://github.com/GPramodh07/Discord-Mini-App/releases/download/v2.0.0/DiscordMiniApp_V2.0.0.apk)
+[![Download Google Drive](https://img.shields.io/badge/📁_Google_Drive_Mirror-v2.0.0-34A853?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/file/d/14AuAz-yuUiJYktQX4oqyUHer7FbeqRio/view?usp=sharing)
 
 <br/>
 
@@ -28,9 +29,17 @@
 
 <br/>
 
+<div align="center">
+
 <a href="https://github.com/GPramodh07/Discord-Mini-App/releases/download/v2.0.0/DiscordMiniApp_V2.0.0.apk">
-  <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DISCORDMINI_APK-v2.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Download DiscordMini APK" />
+  <img src="https://img.shields.io/badge/⚡_DOWNLOAD_VIA_GITHUB-v2.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white" height="44" alt="Download GitHub APK" />
 </a>
+&nbsp;&nbsp;
+<a href="https://drive.google.com/file/d/14AuAz-yuUiJYktQX4oqyUHer7FbeqRio/view?usp=sharing">
+  <img src="https://img.shields.io/badge/📁_DOWNLOAD_VIA_GOOGLE_DRIVE-Mirror-34A853?style=for-the-badge&logo=googledrive&logoColor=white" height="44" alt="Download Google Drive APK" />
+</a>
+
+</div>
 
 </div>
 
@@ -119,7 +128,11 @@ The Android client and Java backend communicate over raw TCP using line-delimite
 <div align="center">
 
 <a href="https://github.com/GPramodh07/Discord-Mini-App/releases/download/v2.0.0/DiscordMiniApp_V2.0.0.apk">
-  <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DISCORDMINI_APK-v2.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Download APK" />
+  <img src="https://img.shields.io/badge/⚡_DOWNLOAD_VIA_GITHUB-v2.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white" height="44" alt="Download GitHub APK" />
+</a>
+&nbsp;&nbsp;
+<a href="https://drive.google.com/file/d/14AuAz-yuUiJYktQX4oqyUHer7FbeqRio/view?usp=sharing">
+  <img src="https://img.shields.io/badge/📁_DOWNLOAD_VIA_GOOGLE_DRIVE-Mirror-34A853?style=for-the-badge&logo=googledrive&logoColor=white" height="44" alt="Download Google Drive APK" />
 </a>
 
 </div>
