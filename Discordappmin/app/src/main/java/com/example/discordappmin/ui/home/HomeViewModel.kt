@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class HomeViewModel : ViewModel() {
     val currentUser: StateFlow<User?> = ChatRepository.currentUser
@@ -28,4 +29,11 @@ class HomeViewModel : ViewModel() {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    fun logout(onLoggedOut: () -> Unit) {
+        viewModelScope.launch {
+            ChatRepository.logout()
+            onLoggedOut()
+        }
+    }
 }

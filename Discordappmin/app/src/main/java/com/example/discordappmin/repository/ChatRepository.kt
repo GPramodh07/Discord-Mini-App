@@ -20,7 +20,7 @@ object ChatRepository {
     // Server Host & Port Configuration
     // ----------------------------------------------------
     // Deployed Cloud VPS Server (Active)
-    var SERVER_HOST: String = "3.106.255.165" 
+    var SERVER_HOST: String = "3.107.163.173" 
     var SERVER_PORT: Int = 5000
 
     // USB ADB Reverse / Localhost (Uncomment to revert to USB config)
@@ -132,6 +132,37 @@ object ChatRepository {
         }
 
         return success
+    }
+
+    suspend fun logout() {
+        val me = _currentUser.value?.username
+        if (me != null && SocketClient.isConnected) {
+            val presencePacket = SocketPacket(
+                type = "PRESENCE",
+                sender = me,
+                content = "OFFLINE"
+            )
+            try {
+                SocketClient.sendPacket(presencePacket)
+            } catch (e: Exception) {
+                android.util.Log.e("ChatRepository", "Error sending OFFLINE packet on logout", e)
+            }
+        }
+
+        SocketClient.storeCredentials("", "")
+        SocketClient.disconnect(skipReconnect = true)
+
+        _currentUser.value = null
+        storedPassword = ""
+        _messages.value = emptyList()
+        _groups.value = emptyList()
+
+        _onlineUsers.value = listOf(
+            User(id = "alice", username = "alice", isOnline = false),
+            User(id = "bob", username = "bob", isOnline = false),
+            User(id = "carl", username = "carl", isOnline = false),
+            User(id = "don", username = "don", isOnline = false)
+        )
     }
 
     private fun updatePresence(username: String, isOnline: Boolean) {
