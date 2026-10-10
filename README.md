@@ -10,7 +10,7 @@
 
 <br/>
 
-[![Download APK](https://img.shields.io/badge/⚡_Download_APK-v1.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white)](https://github.com/GPramodh07/Discord-Mini-App/releases/download/v1.0.0/DiscordMini_v1.0.apk)
+[![Download APK](https://img.shields.io/badge/⚡_Download_APK-v2.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white)](https://github.com/GPramodh07/Discord-Mini-App/releases/download/v2.0.0/DiscordMiniApp_V2.0.0.apk)
 
 <br/>
 
@@ -28,8 +28,8 @@
 
 <br/>
 
-<a href="https://github.com/GPramodh07/Discord-Mini-App/releases/download/v1.0.0/DiscordMini_v1.0.apk">
-  <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DISCORDMINI_APK-v1.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Download DiscordMini APK" />
+<a href="https://github.com/GPramodh07/Discord-Mini-App/releases/download/v2.0.0/DiscordMiniApp_V2.0.0.apk">
+  <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DISCORDMINI_APK-v2.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Download DiscordMini APK" />
 </a>
 
 </div>
@@ -50,7 +50,7 @@
 
 ## ✨ Production Feature Highlights
 
-- 🚀 **Production-Ready Android Release**: Pre-built Android APK ready for immediate deployment ([**Download v1.0.0 APK**](https://github.com/GPramodh07/Discord-Mini-App/releases/download/v1.0.0/DiscordMini_v1.0.apk)).
+- 🚀 **Production-Ready Android Release**: Pre-built Android APK ready for immediate deployment ([**Download v2.0.0 APK**](https://github.com/GPramodh07/Discord-Mini-App/releases/download/v2.0.0/DiscordMiniApp_V2.0.0.apk)).
 - ☁️ **AWS Cloud VPS Backend**: Multithreaded TCP server deployed on AWS EC2 (`3.107.163.173:5000`) with automatic local fallback for USB ADB debugging (`127.0.0.1`).
 - ⚠️ **Comprehensive Error Handling & Authentication**:
   - **Server Down Alert**: Displays `"Server is not running, contact admin"` when TCP connections fail.
@@ -118,8 +118,8 @@ The Android client and Java backend communicate over raw TCP using line-delimite
 
 <div align="center">
 
-<a href="https://github.com/GPramodh07/Discord-Mini-App/releases/download/v1.0.0/DiscordMini_v1.0.apk">
-  <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DISCORDMINI_APK-v1.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Download APK" />
+<a href="https://github.com/GPramodh07/Discord-Mini-App/releases/download/v2.0.0/DiscordMiniApp_V2.0.0.apk">
+  <img src="https://img.shields.io/badge/⚡_DOWNLOAD_DISCORDMINI_APK-v2.0.0-5865F2?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Download APK" />
 </a>
 
 </div>
