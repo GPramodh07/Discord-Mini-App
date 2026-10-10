@@ -54,6 +54,7 @@
 - ☁️ **AWS Cloud VPS Deployment**: Backend running live on AWS EC2 (`3.106.255.165:5000`) with fallback support for local USB ADB reverse debugging (`127.0.0.1`).
 - 🔋 **Android Foreground Service & Battery Optimization**: Includes `SocketForegroundService` with a CPU `PARTIAL_WAKE_LOCK` to keep TCP sockets connected when minimized, locked, or running across Android App Clones.
 - 💬 **Strict 1:1 DMs & Group Channels**: Direct messaging isolated cleanly from multi-user group chats.
+- 🚪 **Explicit User Logout**: Top-bar action button with confirmation modal sending `PRESENCE OFFLINE` packets, closing TCP sockets, stopping foreground services, and clearing navigation backstacks.
 - 🗑️ **Cross-Client Real-Time Delete**: Delete messages for everyone across all connected clients with SQLite DB synchronization.
 - 🟢 **Dynamic Presence Broadcasts**: Live green/gray online status indicators for connected contacts.
 - 🗄️ **SQLite Message & Group History Sync**: Automatically restores past conversations, group channels, and offline queued messages on login.
